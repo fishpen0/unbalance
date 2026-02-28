@@ -272,7 +272,9 @@ export const useUnraidStore = create<UnraidStore>()(
         scatterPlan: () => {
           console.log('running scatter plan');
           set((state) => {
-            state.status = Op.ScatterPlan;
+            if (state.status === Op.Neutral) {
+              state.status = Op.ScatterPlan;
+            }
             state.logs = [];
             state.plan = null;
             state.error = '';
@@ -302,7 +304,9 @@ export const useUnraidStore = create<UnraidStore>()(
         scatterPlanEnded: (payload: Plan) => {
           console.log('scatterPlanEnded ', payload);
           set((state) => {
-            state.status = Op.Neutral;
+            if (state.status === Op.ScatterPlan) {
+              state.status = Op.Neutral;
+            }
             state.plan = payload;
             state.error = '';
           });
@@ -414,7 +418,9 @@ export const useUnraidStore = create<UnraidStore>()(
         gatherPlan: () => {
           console.log('running gather plan');
           set((state) => {
-            state.status = Op.GatherPlan;
+            if (state.status === Op.Neutral) {
+              state.status = Op.GatherPlan;
+            }
             state.logs = [];
             state.plan = null;
             state.error = '';
@@ -442,7 +448,9 @@ export const useUnraidStore = create<UnraidStore>()(
         gatherPlanEnded: (payload: Plan) => {
           console.log('gatherPlanEnded ', payload);
           set((state) => {
-            state.status = Op.Neutral;
+            if (state.status === Op.GatherPlan) {
+              state.status = Op.Neutral;
+            }
             state.plan = payload;
             state.error = '';
           });

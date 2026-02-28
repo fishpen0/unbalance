@@ -18,12 +18,9 @@ import (
 func (c *Core) gatherPlanPrepare(setup domain.GatherSetup) {
 	now := time.Now()
 
-	if c.state.Status != common.OpNeutral {
-		logger.Yellow("unbalanced is busy: %d", c.state.Status)
-		return
+	if c.state.Status == common.OpNeutral {
+		c.state.Status = common.OpGatherPlan
 	}
-
-	c.state.Status = common.OpGatherPlan
 	c.state.Unraid = c.refreshUnraid()
 
 	plan := &domain.Plan{
@@ -57,7 +54,7 @@ func (c *Core) gatherPlanStart(plan *domain.Plan) {
 
 	c.printDisks(c.state.Unraid.Disks, c.state.Unraid.BlockSize)
 
-	items, ownerIssue, groupIssue, folderIssue, fileIssue := c.getItemsAndIssues(c.state.Status, c.state.Unraid.BlockSize, reItems, reStat, c.state.Unraid.Disks, plan.ChosenFolders)
+	items, ownerIssue, groupIssue, folderIssue, fileIssue := c.getItemsAndIssues(common.OpGatherPlan, c.state.Unraid.BlockSize, reItems, reStat, c.state.Unraid.Disks, plan.ChosenFolders)
 
 	// // no items found, no sense going on, just end this planning
 	// if len(items) == 0 {
@@ -113,7 +110,9 @@ func (c *Core) gatherPlanStart(plan *domain.Plan) {
 }
 
 func (c *Core) gatherPlanEnd(plan *domain.Plan) {
-	c.state.Status = common.OpNeutral
+	if c.state.Status == common.OpGatherPlan {
+		c.state.Status = common.OpNeutral
+	}
 
 	packet := &domain.Packet{Topic: common.EventGatherPlanEnded, Payload: plan}
 	c.ctx.Hub.Pub(packet, "socket:broadcast")

@@ -135,10 +135,13 @@ func (c *Core) mailboxHandler() {
 			case common.CommandScatterMove, common.CommandScatterCopy,
 				common.CommandGatherMove, common.CommandReplay:
 				c.enqueue(packet)
+				continue
+			case common.CommandScatterPlanStart, common.CommandGatherPlanStart:
+				// planning is read-only; allow it to run alongside a transfer
 			default:
 				logger.Yellow("unbalance is busy: %d", c.state.Status)
+				continue
 			}
-			continue
 		}
 
 		switch packet.Topic {

@@ -21,12 +21,9 @@ import (
 func (c *Core) scatterPlanPrepare(setup domain.ScatterSetup) {
 	now := time.Now()
 
-	if c.state.Status != common.OpNeutral {
-		logger.Yellow("unbalanced is busy: %d", c.state.Status)
-		return
+	if c.state.Status == common.OpNeutral {
+		c.state.Status = common.OpScatterPlan
 	}
-
-	c.state.Status = common.OpScatterPlan
 	c.state.Unraid = c.refreshUnraid()
 
 	plan := &domain.Plan{
@@ -95,7 +92,7 @@ func (c *Core) scatterPlanStart(plan *domain.Plan) {
 
 	c.printDisks(c.state.Unraid.Disks, c.state.Unraid.BlockSize)
 
-	items, ownerIssue, groupIssue, folderIssue, fileIssue := c.getItemsAndIssues(c.state.Status, c.state.Unraid.BlockSize, reItems, reStat, []*domain.Disk{srcDisk}, plan.ChosenFolders)
+	items, ownerIssue, groupIssue, folderIssue, fileIssue := c.getItemsAndIssues(common.OpScatterPlan, c.state.Unraid.BlockSize, reItems, reStat, []*domain.Disk{srcDisk}, plan.ChosenFolders)
 
 	toBeTransferred := make([]*domain.Item, 0)
 
@@ -157,7 +154,9 @@ func (c *Core) scatterPlanStart(plan *domain.Plan) {
 }
 
 func (c *Core) scatterPlanEnd(plan *domain.Plan) {
-	c.state.Status = common.OpNeutral
+	if c.state.Status == common.OpScatterPlan {
+		c.state.Status = common.OpNeutral
+	}
 
 	packet := &domain.Packet{Topic: common.EventScatterPlanEnded, Payload: plan}
 	c.ctx.Hub.Pub(packet, "socket:broadcast")
