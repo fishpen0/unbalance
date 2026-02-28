@@ -17,8 +17,9 @@ var Version string
 // const ReservedSpace int64 = 512 * 1024 * 1024 // 512Mb
 
 var cli struct {
-	Port    string `default:"7090" help:"port to listen on"`
-	LogsDir string `default:"/var/log" help:"directory to store logs"`
+	Port      string `default:"7090" help:"port to listen on"`
+	LogsDir   string `default:"/var/log" help:"directory to store logs"`
+	ConfigDir string `default:"/boot/config/plugins/unbalanced" help:"directory for plugin config and history files"`
 
 	// Config vars
 	DryRun         bool     `env:"DRY_RUN" default:"true" help:"perform a dry-run rather than actual work"`
@@ -53,7 +54,8 @@ func main() {
 	log.Printf("cli: %+v", cli)
 
 	err := ctx.Run(&domain.Context{
-		Port: cli.Port,
+		Port:      cli.Port,
+		ConfigDir: cli.ConfigDir,
 		Config: domain.Config{
 			Version:        Version,
 			DryRun:         cli.DryRun,
