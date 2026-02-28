@@ -137,7 +137,7 @@ export const useUnraidStore = create<UnraidStore>()(
       },
       '/scatter/transfer/validation': {
         next: {
-          target: '/scatter/transfer/operation',
+          target: '/transfer',
           action() {
             console.log(
               'transition action for "next" in "/scatter/transfer/validation" state',
@@ -183,7 +183,7 @@ export const useUnraidStore = create<UnraidStore>()(
       },
       '/gather/transfer/targets': {
         next: {
-          target: '/gather/transfer/operation',
+          target: '/transfer',
           action() {
             console.log(
               'transition action for "next" in "/gather/transfer/targets" state',
@@ -355,7 +355,7 @@ export const useUnraidStore = create<UnraidStore>()(
             }),
           );
 
-          get().navigate?.('/scatter/transfer/operation');
+          get().navigate?.('/transfer');
         },
         transferProgress: (payload: Operation) => {
           // console.log('transferProgress ', payload);
@@ -469,10 +469,7 @@ export const useUnraidStore = create<UnraidStore>()(
             }),
           );
 
-          const flow =
-            operation.opKind === Op.ScatterMove ? 'scatter' : 'gather';
-
-          get().navigate?.(`/${flow}/transfer/operation`);
+          get().navigate?.('/transfer');
         },
         replay: (operation: Operation | undefined) => {
           if (!operation) {
@@ -494,13 +491,7 @@ export const useUnraidStore = create<UnraidStore>()(
             }),
           );
 
-          const flow =
-            operation.opKind === Op.ScatterMove ||
-            operation.opKind === Op.ScatterCopy
-              ? 'scatter'
-              : 'gather';
-
-          get().navigate?.(`/${flow}/transfer/operation`);
+          get().navigate?.('/transfer');
         },
         getLog: async () => {
           const logs = await Api.getLog();

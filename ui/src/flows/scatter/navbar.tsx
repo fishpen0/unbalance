@@ -13,7 +13,6 @@ import { getVariant, getFill } from '~/helpers/styling';
 import { Topic } from '~/types';
 import { useConfigActions, useConfigDryRun } from '~/state/config';
 import { useScatterSelected, useScatterTargets } from '~/state/scatter';
-import { Actions } from '~/shared/transfer/actions';
 
 const config = [
   { navTo: 'select', title: 'Select', subtitle: 'Choose data' },
@@ -94,7 +93,6 @@ export const Navbar: React.FunctionComponent = () => {
           </div>
         )}
 
-        {route === '/scatter/transfer/operation' && <Actions />}
       </div>
 
       <div className="flex items-center justify-end">

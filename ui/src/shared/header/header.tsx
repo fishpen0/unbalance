@@ -47,13 +47,24 @@ export const Header: React.FunctionComponent = () => {
           </StatefulLink>
 
           <StatefulLink
+            to="/transfer"
+            className={({ isActive }) => {
+              return isActive
+                ? 'ml-4 underline underline-offset-8 font-medium dark:text-white text-sky-900'
+                : 'ml-4';
+            }}
+            disabled={!busy}
+          >
+            TRANSFER
+          </StatefulLink>
+
+          <StatefulLink
             to="/history"
             className={({ isActive }) => {
               return isActive
                 ? 'ml-4 underline underline-offset-8 font-medium dark:text-white text-sky-900'
                 : 'ml-4';
             }}
-            disabled={busy}
           >
             HISTORY
           </StatefulLink>
@@ -65,7 +76,6 @@ export const Header: React.FunctionComponent = () => {
                 ? 'ml-4 underline underline-offset-8 font-medium dark:text-white text-sky-900'
                 : 'ml-4';
             }}
-            disabled={busy}
           >
             SETTINGS
           </StatefulLink>
@@ -77,7 +87,6 @@ export const Header: React.FunctionComponent = () => {
                 ? 'ml-4 underline underline-offset-8 font-medium dark:text-white text-sky-900'
                 : 'ml-4';
             }}
-            disabled={busy}
           >
             LOG
           </StatefulLink>

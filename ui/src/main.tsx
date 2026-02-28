@@ -24,8 +24,8 @@ import { Reserved } from '~/flows/settings/reserved';
 import { Flags } from '~/flows/settings/flags';
 import { Verbosity } from '~/flows/settings/verbosity';
 import { Logs } from '~/flows/logs/logs';
-import { Transfer } from '~/shared/transfer/transfer';
 import { Feedback } from '~/shared/feedback/feedback';
+import { TransferPage } from '~/flows/transfer/transfer-page';
 
 const router = createBrowserRouter([
   {
@@ -53,10 +53,6 @@ const router = createBrowserRouter([
                 path: 'validation',
                 element: <ScatterValidation />,
               },
-              {
-                path: 'operation',
-                element: <Transfer />,
-              },
             ],
           },
         ],
@@ -82,13 +78,13 @@ const router = createBrowserRouter([
                 path: 'targets',
                 element: <Targets />,
               },
-              {
-                path: 'operation',
-                element: <Transfer />,
-              },
             ],
           },
         ],
+      },
+      {
+        path: '/transfer',
+        element: <TransferPage />,
       },
       {
         path: '/history',
