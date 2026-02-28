@@ -1,0 +1,73 @@
+#!/bin/bash
+# Direct install of unbalanced-dev onto an Unraid server.
+# Bypasses the PLG download mechanism — copies the tgz over SSH and installs it.
+#
+# Usage:
+#   ./meta/scripts/dev-install [host]
+#
+# Examples:
+#   ./meta/scripts/dev-install           # defaults to 'tower'
+#   ./meta/scripts/dev-install 192.168.1.10
+#   UNRAID_HOST=box.local ./meta/scripts/dev-install
+#
+# Run 'make dev-plg' first to build the tgz.
+
+set -e
+
+name="unbalanced-dev"
+host="${1:-${UNRAID_HOST:-box.local}}"
+
+# Find the most recently built tgz
+tgz=$(ls ${name}-*.tgz 2>/dev/null | sort -r | head -1)
+if [ -z "$tgz" ]; then
+  echo "error: no ${name}-*.tgz found — run 'make dev-plg' first"
+  exit 1
+fi
+
+echo "Installing $tgz → root@${host}"
+
+# Ensure config dir exists on Unraid
+ssh root@"$host" "mkdir -p /boot/config/plugins/$name"
+
+# Copy the bundle
+scp "$tgz" root@"$host":/boot/config/plugins/$name/
+
+# Write cfg (only if it doesn't already exist)
+ssh root@"$host" "
+  cfg=/boot/config/plugins/$name/${name}.cfg
+  if [ ! -f \"\$cfg\" ]; then
+    cat > \"\$cfg\" <<'CFG'
+SERVICE=\"enable\"
+PORT=\"7091\"
+RUNAS=\"nobody\"
+CFG
+    echo \"wrote \$cfg\"
+  fi
+"
+
+# Write env (only if it doesn't already exist)
+ssh root@"$host" "
+  env_file=/boot/config/plugins/$name/${name}.env
+  if [ ! -f \"\$env_file\" ]; then
+    cat > \"\$env_file\" <<'ENV'
+DRY_RUN=true
+NOTIFY_PLAN=0
+NOTIFY_TRANSFER=0
+RESERVED_AMOUNT=1
+RESERVED_UNIT=Gb
+RSYNC_ARGS=-X
+VERBOSITY=0
+REFRESH_RATE=1000
+ENV
+    echo \"wrote \$env_file\"
+  fi
+"
+
+# Extract bundle and (re)start
+ssh root@"$host" "
+  rm -rf /usr/local/emhttp/plugins/$name
+  tar -xf /boot/config/plugins/$name/$tgz -C /usr/local/emhttp/plugins
+  /usr/local/emhttp/plugins/$name/scripts/stop 2>/dev/null || true
+  /usr/local/emhttp/plugins/$name/scripts/start
+  echo 'started — browse to http://box.local:7091'
+"

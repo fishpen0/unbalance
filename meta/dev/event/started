@@ -1,0 +1,5 @@
+#!/bin/bash
+source /boot/config/plugins/unbalanced-dev/unbalanced-dev.cfg
+if [ "$SERVICE" == "enable" ]; then
+	/usr/local/emhttp/plugins/unbalanced-dev/scripts/start
+fi

@@ -1,0 +1,79 @@
+Menu="Utilities"
+Icon="unbalanced-dev.png"
+Title="unbalanced (dev)"
+---
+<?php
+$sName = "unbalanced-dev";
+$cfg = parse_plugin_cfg("unbalanced-dev");
+$svc = isset($cfg['SERVICE']) ? $cfg['SERVICE'] : "disable";
+$port = (isset($cfg['PORT']) && is_numeric($cfg['PORT']) && $cfg['PORT'] > 0 && $cfg['PORT'] < 65535) ? $cfg['PORT'] : "7091";
+$running = shell_exec("pidof unbalanced-dev | wc -w");
+$version = shell_exec("cat /usr/local/emhttp/plugins/unbalanced-dev/VERSION | tr '\n' ' '");
+?>
+
+<script type="text/javascript">
+	var port = <?=$port;?>;
+	var url = 'http://' + document.location.hostname + ':' + port + '/';
+	var isRunning = <?=$running;?> === 1;
+	var version = '<?=$version;?>';
+	if (isRunning) {
+		document.write("<a style='color:green;' target='_blank' href='" + url + "' title='unbalanced dev plugin'><b>Open Web UI ( v" + version + ")</b></a>");
+	} else {
+		document.write("<b><font style='color:orange;'>unbalanced-dev v" + version + "</font></b>")
+	}
+</script>
+
+<form markdown="1" name="unbalanced_dev_settings" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#file" value="unbalanced-dev/unbalanced-dev.cfg" />
+<input type="hidden" id="command" name="#command" value="" />
+
+Enable unbalanced-dev server:
+: <select id="SERVICE" name="SERVICE" size="1" onChange="checkRUNNING(this.form);">
+  <?=mk_option($svc, "disable", "No");?>
+  <?=mk_option($svc, "enable", "Yes");?>
+  </select>
+
+Port:
+: <input id="PORT" type="text" class="stopped" name="PORT" maxlength="40" value="<?=$port;?>" title="port must be 0-65535" placeholder="Default Port is 7091" >
+
+<input id="DEFAULT" class="stopped" type="submit" value="Default" onClick="resetDATA(this.form)">
+: <input id="btnApply" type="submit" value="Apply" onClick="verifyDATA(this.form)"><input type="button" value="Done" onClick="done()">
+</form>
+
+<script type="text/javascript">
+$(function(){
+	showStatus('<?=$sName;?>');
+	checkRUNNING(document.unbalanced_dev_settings);
+});
+
+function resetDATA(form) {
+	form.PORT.value = "7091";
+}
+
+function checkRUNNING(form) {
+	if (<?=$running;?> == 1) {
+		$(".stopped").prop("disabled", true);
+		form.btnApply.disabled = "disabled";
+	} else {
+		$(".stopped").prop("disabled", (form.SERVICE.value == "enable"));
+	}
+	if (form.SERVICE.value == "enable")
+		form.command.value = "/usr/local/emhttp/plugins/unbalanced-dev/scripts/start";
+	else {
+		form.command.value = "/usr/local/emhttp/plugins/unbalanced-dev/scripts/stop";
+		form.btnApply.disabled = (form.SERVICE.value == "enable");
+	}
+}
+
+function verifyDATA(form) {
+	if (isNaN(form.PORT.value)) {
+		form.PORT.value = "7091";
+	} else {
+		if (form.PORT.value < 0 || form.PORT.value > 65535) {
+			form.PORT.value = "7091";
+		}
+	}
+	form.SERVICE.value = form.SERVICE.value.replace(/ /g,"_");
+	form.PORT.value = form.PORT.value.replace(/ /g,"_");
+}
+</script>
