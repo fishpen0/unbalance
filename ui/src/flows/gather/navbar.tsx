@@ -6,7 +6,6 @@ import { Stepper } from '~/shared/stepper/stepper';
 import {
   useUnraidActions,
   useUnraidRoute,
-  useUnraidIsBusy,
   useUnraidIsPlanning,
 } from '~/state/unraid';
 import { useGatherSelected, useGatherTarget } from '~/state/gather';
@@ -30,7 +29,6 @@ export const Navbar: React.FunctionComponent = () => {
   const target = useGatherTarget();
   const { toggleDryRun } = useConfigActions();
   const dryRun = useConfigDryRun();
-  const busy = useUnraidIsBusy();
   const isPlanning = useUnraidIsPlanning();
   const selected = useGatherSelected();
 
@@ -71,7 +69,7 @@ export const Navbar: React.FunctionComponent = () => {
 
         {route === '/gather/transfer/targets' && target !== '' && (
           <div className="flex flex-row items-center justify-end">
-            <Button label="MOVE" variant="primary" disabled={busy} onClick={onMove} />
+            <Button label="MOVE" variant="primary" onClick={onMove} />
             <span className="mx-1">|</span>
 
             <div className="flex items-center">

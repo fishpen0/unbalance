@@ -48,6 +48,9 @@ const (
 	CommandRemoveSource = "remove:source"
 	CommandReplay       = "replay"
 	CommandStop         = "stop"
+
+	CommandQueueRemove = "queue:remove"
+	EventQueueUpdate   = "queue:update"
 )
 
 const (

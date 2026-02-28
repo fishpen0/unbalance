@@ -133,11 +133,19 @@ export interface Plan {
   target: string; // used for gather operations
 }
 
+export interface QueueEntry {
+  id: string;
+  topic: string;
+  opKind: number;
+  bytesToTransfer: number;
+}
+
 export interface State {
   status: number;
   unraid: Unraid | null;
   operation: Operation | null;
   history: History | null;
+  queue: QueueEntry[];
   // plan: Plan | null;
 }
 
@@ -198,6 +206,9 @@ export enum Topic {
   CommandRemoveSource = 'remove:source',
   CommandReplay = 'replay',
   CommandStop = 'stop',
+
+  CommandQueueRemove = 'queue:remove',
+  EventQueueUpdate = 'queue:update',
 }
 
 export interface Packet {

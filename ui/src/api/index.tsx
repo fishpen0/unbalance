@@ -34,6 +34,7 @@ export class Api {
         unraid: null,
         operation: null,
         history: null,
+        queue: [],
       };
     }
   }

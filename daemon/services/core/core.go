@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/teris-io/shortid"
@@ -63,6 +64,7 @@ type Core struct {
 	mailbox chan any
 
 	stopped bool
+	mu      sync.Mutex
 }
 
 func Create(ctx *domain.Context) *Core {
@@ -71,6 +73,7 @@ func Create(ctx *domain.Context) *Core {
 		ctx: ctx,
 		state: &domain.State{
 			Status: common.OpNeutral,
+			Queue:  make([]*domain.QueueEntry, 0),
 		},
 		mailbox: ctx.Hub.Sub(
 			common.CommandScatterPlanStart,
@@ -82,6 +85,7 @@ func Create(ctx *domain.Context) *Core {
 			common.CommandRemoveSource,
 			common.CommandReplay,
 			common.CommandStop,
+			common.CommandQueueRemove,
 		),
 	}
 }
@@ -128,7 +132,13 @@ func (c *Core) mailboxHandler() {
 		packet := p.(domain.Packet)
 
 		if c.state.Status != common.OpNeutral && packet.Topic != common.CommandStop {
-			logger.Yellow("unbalance is busy: %d", c.state.Status)
+			switch packet.Topic {
+			case common.CommandScatterMove, common.CommandScatterCopy,
+				common.CommandGatherMove, common.CommandReplay:
+				c.enqueue(packet)
+			default:
+				logger.Yellow("unbalance is busy: %d", c.state.Status)
+			}
 			continue
 		}
 
@@ -210,6 +220,11 @@ func (c *Core) mailboxHandler() {
 
 		case common.CommandStop:
 			c.stopped = true
+
+		case common.CommandQueueRemove:
+			var id string
+			lib.Bind(packet.Payload, &id) //nolint:errcheck
+			c.removeFromQueue(id)
 
 		}
 	}

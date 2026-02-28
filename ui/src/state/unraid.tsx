@@ -14,6 +14,7 @@ import {
   Topic,
   State,
   Command,
+  QueueEntry,
 } from '~/types';
 import { getRouteFromStatus } from '~/helpers/routes';
 import { useScatterStore } from '~/state/scatter';
@@ -31,6 +32,7 @@ interface UnraidStore {
   operation: Operation | null;
   history: History | null;
   plan: Plan | null;
+  queue: QueueEntry[];
   logs: Array<string>;
   error: string;
   actions: {
@@ -46,8 +48,11 @@ interface UnraidStore {
       command: Topic.CommandScatterMove | Topic.CommandScatterCopy,
     ) => void;
     scatterValidate: (operation: Operation | undefined) => void;
+    transferStarted: (payload: Operation) => void;
     transferProgress: (payload: Operation) => void;
     transferEnded: (payload: State) => void;
+    queueUpdated: (items: QueueEntry[]) => void;
+    removeFromQueue: (id: string) => void;
     gatherPlan: () => void;
     gatherProgress: (payload: string) => void;
     gatherPlanEnded: (payload: Plan) => void;
@@ -68,13 +73,14 @@ const mapEventToAction: { [x: string]: string } = {
   [Topic.EventScatterPlanStarted]: 'scatterProgress',
   [Topic.EventScatterPlanProgress]: 'scatterProgress',
   [Topic.EventScatterPlanEnded]: 'scatterPlanEnded',
-  [Topic.EventTransferStarted]: 'transferProgress',
+  [Topic.EventTransferStarted]: 'transferStarted',
   [Topic.EventTransferProgress]: 'transferProgress',
   [Topic.EventTransferEnded]: 'transferEnded',
   [Topic.EventGatherPlanStarted]: 'gatherProgress',
   [Topic.EventGatherPlanProgress]: 'gatherProgress',
   [Topic.EventGatherPlanEnded]: 'gatherPlanEnded',
   [Topic.EventOperationError]: 'operationError',
+  [Topic.EventQueueUpdate]: 'queueUpdated',
 };
 
 export const useUnraidStore = create<UnraidStore>()(
@@ -213,6 +219,7 @@ export const useUnraidStore = create<UnraidStore>()(
       operation: null,
       history: null,
       plan: null,
+      queue: [],
       logs: [],
       error: '',
       actions: {
@@ -234,6 +241,7 @@ export const useUnraidStore = create<UnraidStore>()(
             state.unraid = array.unraid;
             state.operation = array.operation;
             state.history = array.history;
+            state.queue = array.queue ?? [];
             state.route = route;
           });
 
@@ -312,15 +320,17 @@ export const useUnraidStore = create<UnraidStore>()(
             return;
           }
 
-          set((state) => {
-            state.operation = null;
-            state.logs = [];
-            state.error = '';
-            state.status =
-              command === Topic.CommandScatterMove
-                ? Op.ScatterMove
-                : Op.ScatterCopy;
-          });
+          if (get().status === Op.Neutral) {
+            set((state) => {
+              state.operation = null;
+              state.logs = [];
+              state.error = '';
+              state.status =
+                command === Topic.CommandScatterMove
+                  ? Op.ScatterMove
+                  : Op.ScatterCopy;
+            });
+          }
 
           socket.send(
             JSON.stringify({
@@ -357,6 +367,12 @@ export const useUnraidStore = create<UnraidStore>()(
 
           get().navigate?.('/transfer');
         },
+        transferStarted: (payload: Operation) => {
+          set((state) => {
+            state.operation = payload;
+            state.status = payload.opKind as Op;
+          });
+        },
         transferProgress: (payload: Operation) => {
           // console.log('transferProgress ', payload);
           set((state) => {
@@ -364,17 +380,36 @@ export const useUnraidStore = create<UnraidStore>()(
           });
         },
         transferEnded: (payload: State) => {
-          // console.log('transferProgress ', payload);
+          // console.log('transferEnded ', payload);
           set((state) => {
             state.status = payload.status;
             state.unraid = payload.unraid;
             state.operation = payload.operation;
             state.history = payload.history;
+            state.queue = payload.queue ?? [];
             state.plan = null;
             state.error = '';
           });
 
-          get().navigate?.('/history');
+          if ((payload.queue ?? []).length > 0) {
+            get().navigate?.('/transfer');
+          } else {
+            get().navigate?.('/history');
+          }
+        },
+        queueUpdated: (items: QueueEntry[]) => {
+          set((state) => {
+            state.queue = items;
+          });
+        },
+        removeFromQueue: (id: string) => {
+          const socket = get().socket;
+          socket.send(
+            JSON.stringify({
+              topic: Topic.CommandQueueRemove,
+              payload: id,
+            }),
+          );
         },
         gatherPlan: () => {
           console.log('running gather plan');
@@ -424,12 +459,14 @@ export const useUnraidStore = create<UnraidStore>()(
             return;
           }
 
-          set((state) => {
-            state.operation = null;
-            state.logs = [];
-            state.status = Op.GatherMove;
-            state.error = '';
-          });
+          if (get().status === Op.Neutral) {
+            set((state) => {
+              state.operation = null;
+              state.logs = [];
+              state.status = Op.GatherMove;
+              state.error = '';
+            });
+          }
 
           const target = useGatherStore.getState().target;
 
@@ -552,3 +589,4 @@ export const useUnraidHistory = () =>
   );
 
 export const useUnraidError = () => useUnraidStore((state) => state.error);
+export const useUnraidQueue = () => useUnraidStore((state) => state.queue);

@@ -6,7 +6,6 @@ import { Stepper } from '~/shared/stepper/stepper';
 import {
   useUnraidActions,
   useUnraidRoute,
-  useUnraidIsBusy,
   useUnraidIsPlanning,
 } from '~/state/unraid';
 import { routeToStep } from '~/helpers/routes';
@@ -28,7 +27,6 @@ export const Navbar: React.FunctionComponent = () => {
   const dryRun = useConfigDryRun();
   const selected = useScatterSelected();
   const targets = useScatterTargets();
-  const busy = useUnraidIsBusy();
   const isPlanning = useUnraidIsPlanning();
 
   const onNext = () => transition('next');
@@ -70,9 +68,9 @@ export const Navbar: React.FunctionComponent = () => {
 
         {route === '/scatter/transfer/validation' && (
           <div className="flex flex-row items-center justify-end">
-            <Button label="MOVE" variant="primary" disabled={busy} onClick={onMove} />
+            <Button label="MOVE" variant="primary" onClick={onMove} />
             <span className="mx-1">|</span>
-            <Button label="COPY" variant="primary" disabled={busy} onClick={onCopy} />
+            <Button label="COPY" variant="primary" onClick={onCopy} />
 
             <span className="mx-1">|</span>
 

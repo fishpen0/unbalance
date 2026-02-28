@@ -350,6 +350,8 @@ func (c *Core) endOperation(subject, headline string, commands []string, operati
 	packet := &domain.Packet{Topic: common.EventTransferEnded, Payload: c.state}
 	c.ctx.Hub.Pub(packet, "socket:broadcast")
 
+	c.dequeueAndRun()
+
 	message := fmt.Sprintf("\n\nStarted: %s\nEnded: %s\n\nElapsed: %s\n\n%s\n\nTransferred %s at ~ %.2f MB/s",
 		fstarted, ffinished, elapsed, headline, lib.ByteSize(operation.BytesTransferred), operation.Speed,
 	)
@@ -414,6 +416,7 @@ func (c *Core) performRemoveSource(operation *domain.Operation, cmd *domain.Comm
 			Operation: operation,
 			History:   c.state.History,
 			Unraid:    c.state.Unraid,
+			Queue:     c.state.Queue,
 		}
 
 		packet := &domain.Packet{Topic: common.EventTransferEnded, Payload: state}
@@ -428,6 +431,8 @@ func (c *Core) performRemoveSource(operation *domain.Operation, cmd *domain.Comm
 
 		c.state.Status = common.OpNeutral
 		c.state.Operation = nil
+
+		c.dequeueAndRun()
 
 		break
 	}
