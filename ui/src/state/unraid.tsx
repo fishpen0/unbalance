@@ -532,6 +532,10 @@ export const useUnraidStatus = () => useUnraidStore((state) => state.status);
 export const useUnraidRoute = () => useUnraidStore((state) => state.route);
 export const useUnraidIsBusy = () =>
   useUnraidStore((state) => state.status !== Op.Neutral);
+export const useUnraidIsPlanning = () =>
+  useUnraidStore(
+    (state) => state.status === Op.ScatterPlan || state.status === Op.GatherPlan,
+  );
 export const useUnraidDisks = () =>
   useUnraidStore((state) => state.unraid?.disks ?? []);
 export const useUnraidPlan = () => useUnraidStore((state) => state.plan);

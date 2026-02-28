@@ -7,6 +7,7 @@ import {
   useUnraidActions,
   useUnraidRoute,
   useUnraidIsBusy,
+  useUnraidIsPlanning,
 } from '~/state/unraid';
 import { useGatherSelected, useGatherTarget } from '~/state/gather';
 import { routeToStep } from '~/helpers/routes';
@@ -30,6 +31,7 @@ export const Navbar: React.FunctionComponent = () => {
   const { toggleDryRun } = useConfigActions();
   const dryRun = useConfigDryRun();
   const busy = useUnraidIsBusy();
+  const isPlanning = useUnraidIsPlanning();
   const selected = useGatherSelected();
 
   const onNext = () => transition('next');
@@ -39,7 +41,7 @@ export const Navbar: React.FunctionComponent = () => {
 
   const currentStep = routeToStep(route);
   const nextDisabled =
-    busy ||
+    isPlanning ||
     route === '/gather/transfer/targets' ||
     (route === '/gather/select' && Object.keys(selected).length === 0);
 
@@ -56,7 +58,7 @@ export const Navbar: React.FunctionComponent = () => {
               style={getFill(route !== '/gather/select')}
             />
           }
-          disabled={busy || route === '/gather/select'}
+          disabled={isPlanning || route === '/gather/select'}
           onClick={onPrev}
         />
       </div>
@@ -69,7 +71,7 @@ export const Navbar: React.FunctionComponent = () => {
 
         {route === '/gather/transfer/targets' && target !== '' && (
           <div className="flex flex-row items-center justify-end">
-            <Button label="MOVE" variant="primary" onClick={onMove} />
+            <Button label="MOVE" variant="primary" disabled={busy} onClick={onMove} />
             <span className="mx-1">|</span>
 
             <div className="flex items-center">

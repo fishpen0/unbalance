@@ -7,6 +7,7 @@ import {
   useUnraidActions,
   useUnraidRoute,
   useUnraidIsBusy,
+  useUnraidIsPlanning,
 } from '~/state/unraid';
 import { routeToStep } from '~/helpers/routes';
 import { getVariant, getFill } from '~/helpers/styling';
@@ -28,6 +29,7 @@ export const Navbar: React.FunctionComponent = () => {
   const selected = useScatterSelected();
   const targets = useScatterTargets();
   const busy = useUnraidIsBusy();
+  const isPlanning = useUnraidIsPlanning();
 
   const onNext = () => transition('next');
   const onPrev = () => transition('prev');
@@ -37,7 +39,7 @@ export const Navbar: React.FunctionComponent = () => {
 
   const currentStep = routeToStep(route);
   const nextDisabled =
-    busy ||
+    isPlanning ||
     route === '/scatter/transfer/validation' ||
     (route === '/scatter/select' &&
       (selected.length === 0 || Object.keys(targets).length === 0));
@@ -55,7 +57,7 @@ export const Navbar: React.FunctionComponent = () => {
               style={getFill(route !== '/scatter/select')}
             />
           }
-          disabled={busy || route === '/scatter/select'}
+          disabled={isPlanning || route === '/scatter/select'}
           onClick={onPrev}
         />
       </div>
@@ -68,9 +70,9 @@ export const Navbar: React.FunctionComponent = () => {
 
         {route === '/scatter/transfer/validation' && (
           <div className="flex flex-row items-center justify-end">
-            <Button label="MOVE" variant="primary" onClick={onMove} />
+            <Button label="MOVE" variant="primary" disabled={busy} onClick={onMove} />
             <span className="mx-1">|</span>
-            <Button label="COPY" variant="primary" onClick={onCopy} />
+            <Button label="COPY" variant="primary" disabled={busy} onClick={onCopy} />
 
             <span className="mx-1">|</span>
 

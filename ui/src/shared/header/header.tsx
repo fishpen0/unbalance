@@ -3,11 +3,12 @@ import React from 'react';
 import logo from '~/assets/unbalance-logo.png';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Loading } from '~/shared/icons/loading';
-import { useUnraidIsBusy } from '~/state/unraid';
+import { useUnraidIsBusy, useUnraidIsPlanning } from '~/state/unraid';
 import { StatefulLink } from '~/shared/stateful-link/stateful-link';
 
 export const Header: React.FunctionComponent = () => {
   const busy = useUnraidIsBusy();
+  const isPlanning = useUnraidIsPlanning();
 
   return (
     <nav className="grid grid-cols-12 gap-2 my-4">
@@ -29,7 +30,7 @@ export const Header: React.FunctionComponent = () => {
                 ? 'ml-4 underline underline-offset-8 font-medium dark:text-white text-sky-900'
                 : 'ml-4';
             }}
-            disabled={busy}
+            disabled={isPlanning}
           >
             SCATTER
           </StatefulLink>
@@ -41,7 +42,7 @@ export const Header: React.FunctionComponent = () => {
                 ? 'ml-4 underline underline-offset-8 font-medium dark:text-white text-sky-900'
                 : 'ml-4';
             }}
-            disabled={busy}
+            disabled={isPlanning}
           >
             GATHER
           </StatefulLink>
