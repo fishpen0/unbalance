@@ -32,7 +32,11 @@ func (c *Core) enqueue(packet domain.Packet) {
 		entry.OpKind = common.OpGatherMove
 		var plan domain.Plan
 		if lib.Bind(packet.Payload, &plan) == nil {
-			entry.BytesToTransfer = plan.BytesToTransfer
+			if plan.Target != "" {
+				if vdisk, ok := plan.VDisks[plan.Target]; ok && vdisk.Bin != nil {
+					entry.BytesToTransfer = vdisk.Bin.Size
+				}
+			}
 		}
 	case common.CommandReplay:
 		var op domain.Operation
