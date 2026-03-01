@@ -1,12 +1,13 @@
 import React from 'react';
 
 import { Panel } from '~/shared/panel/panel';
-import { useGatherSelected, useGatherLocation } from '~/state/gather';
+import { useGatherSelected, useGatherLocation, useGatherActions } from '~/state/gather';
 import { Icon } from '~/shared/icons/icon';
 
 export const Presence: React.FunctionComponent = () => {
   const selected = useGatherSelected();
   const location = useGatherLocation();
+  const { deselectById } = useGatherActions();
 
   return (
     <Panel title="Presence">
@@ -27,6 +28,13 @@ export const Presence: React.FunctionComponent = () => {
                 {location[key].join(', ')}
               </div>
             </div>
+            <button
+              onClick={() => deselectById(key)}
+              className="ml-2 p-1 rounded hover:bg-neutral-200 dark:hover:bg-gray-700"
+              title="Remove"
+            >
+              <Icon name="close" size={16} style="fill-neutral-500 dark:fill-gray-400" />
+            </button>
           </div>
         );
       })}

@@ -17,6 +17,7 @@ interface GatherStore {
     loadShares: () => Promise<void>;
     loadBranch: (node: Node) => Promise<void>;
     toggleSelected: (node: Node) => Promise<void>;
+    deselectById: (nodeId: string) => void;
     setTarget: (target: string) => void;
     toggleHideGrouped: () => void;
     // loadBranch: (node: Node) => Promise<void>;
@@ -176,6 +177,12 @@ export const useGatherStore = create<GatherStore>()(
           state.selected[node.id] = fullPath;
           state.location[node.id] = location;
         });
+      },
+      deselectById: (nodeId: string) => {
+        const node = get().tree[nodeId];
+        if (node) {
+          get().actions.toggleSelected(node);
+        }
       },
       setTarget: (target: string) => {
         set((state) => {
