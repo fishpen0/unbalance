@@ -26,3 +26,4 @@ meta/dev/VERSION
 
 # editor / IDE
 .claude/
+.vscode/
