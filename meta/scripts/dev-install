@@ -17,14 +17,14 @@ set -e
 name="unbalanced-dev"
 host="${1:-${UNRAID_HOST:-box.local}}"
 
-# Find the most recently built tgz
-tgz=$(ls ${name}-*.tgz 2>/dev/null | sort -r | head -1)
+# Find the most recently built tgz (by file modification time, not filename)
+tgz=$(ls -t ${name}-*.tgz 2>/dev/null | head -1)
 if [ -z "$tgz" ]; then
   echo "error: no ${name}-*.tgz found — run 'make dev-plg' first"
   exit 1
 fi
 
-echo "Installing $tgz → root@${host}"
+echo "Installing $tgz → root@${host} (expected version: $(basename $tgz .tgz | sed 's/unbalanced-dev-//'))"
 
 # Ensure config dir exists on Unraid
 ssh root@"$host" "mkdir -p /boot/config/plugins/$name"
@@ -63,11 +63,31 @@ ENV
   fi
 "
 
-# Extract bundle and (re)start
+# Extract bundle, stop old process (wait for it to die), then start fresh
 ssh root@"$host" "
   rm -rf /usr/local/emhttp/plugins/$name
   tar -xf /boot/config/plugins/$name/$tgz -C /usr/local/emhttp/plugins
-  /usr/local/emhttp/plugins/$name/scripts/stop 2>/dev/null || true
+
+  # Kill and wait — don't start until the port is free
+  if pidof $name > /dev/null 2>&1; then
+    echo 'stopping old process...'
+    killall $name 2>/dev/null || true
+    for i in \$(seq 1 10); do
+      pidof $name > /dev/null 2>&1 || break
+      sleep 1
+    done
+  fi
+
   /usr/local/emhttp/plugins/$name/scripts/start
-  echo 'started — browse to http://box.local:7091'
+  sleep 2
+
+  pid=\$(pidof $name 2>/dev/null)
+  if [ -n \"\$pid\" ]; then
+    echo \"started (pid \$pid)\"
+    echo \"version: \$(cat /usr/local/emhttp/plugins/$name/VERSION)\"
+    echo \"browse to http://$host:7091\"
+  else
+    echo 'ERROR: process did not start — check /var/log/unbalanced.log'
+    exit 1
+  fi
 "
