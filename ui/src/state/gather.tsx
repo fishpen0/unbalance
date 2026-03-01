@@ -12,11 +12,13 @@ interface GatherStore {
   selected: Record<string, string>;
   location: Record<string, Array<string>>;
   target: string;
+  hideGrouped: boolean;
   actions: {
     loadShares: () => Promise<void>;
     loadBranch: (node: Node) => Promise<void>;
     toggleSelected: (node: Node) => Promise<void>;
     setTarget: (target: string) => void;
+    toggleHideGrouped: () => void;
     // loadBranch: (node: Node) => Promise<void>;
     // toggleSelected: (node: Node) => void;
     // toggleTarget: (name: string) => void;
@@ -47,6 +49,7 @@ export const useGatherStore = create<GatherStore>()(
     selected: {},
     location: {},
     target: '',
+    hideGrouped: false,
 
     actions: {
       loadShares: async () => {
@@ -94,6 +97,19 @@ export const useGatherStore = create<GatherStore>()(
           state.tree = { ...state.tree, ...branch.nodes };
           state.tree[node.id].children = branch.order;
         });
+
+        // Eagerly locate each dir child so the "hide grouped" filter has data
+        for (const childId of branch.order) {
+          const childNode = get().tree[childId];
+          if (childNode?.dir) {
+            const childPath = getAbsolutePath(childNode, get().tree);
+            Api.locate(childPath).then((locs) => {
+              set((state) => {
+                state.location[childId] = locs;
+              });
+            });
+          }
+        }
       },
       toggleSelected: async (node: Node) => {
         set((state) => {
@@ -166,6 +182,11 @@ export const useGatherStore = create<GatherStore>()(
           state.target = target;
         });
       },
+      toggleHideGrouped: () => {
+        set((state) => {
+          state.hideGrouped = !state.hideGrouped;
+        });
+      },
     },
   })),
 );
@@ -178,3 +199,5 @@ export const useGatherSelected = () =>
 export const useGatherLocation = () =>
   useGatherStore((state) => state.location);
 export const useGatherTarget = () => useGatherStore((state) => state.target);
+export const useGatherHideGrouped = () =>
+  useGatherStore((state) => state.hideGrouped);

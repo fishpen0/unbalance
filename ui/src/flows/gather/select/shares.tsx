@@ -2,12 +2,19 @@ import React from 'react';
 
 import { Panel } from '~/shared/panel/panel';
 import { CheckboxTree } from '~/shared/tree/checkbox-tree';
-import { Node } from '~/types';
+import { Node, Nodes } from '~/types';
 import { Icon } from '~/shared/icons/icon';
-import { useGatherActions, useGatherTree } from '~/state/gather';
+import {
+  useGatherActions,
+  useGatherTree,
+  useGatherLocation,
+  useGatherHideGrouped,
+} from '~/state/gather';
 
 export const Shares: React.FunctionComponent = () => {
   const tree = useGatherTree();
+  const location = useGatherLocation();
+  const hideGrouped = useGatherHideGrouped();
   const { loadShares, loadBranch, toggleSelected } = useGatherActions();
 
   React.useEffect(() => {
@@ -17,10 +24,26 @@ export const Shares: React.FunctionComponent = () => {
   const onLoad = async (node: Node) => await loadBranch(node);
   const onCheck = (node: Node) => toggleSelected(node);
 
+  const filteredTree = React.useMemo<Nodes>(() => {
+    if (!hideGrouped) return tree;
+    const result: Nodes = { ...tree };
+    for (const id of Object.keys(result)) {
+      if (result[id]?.children?.length) {
+        result[id] = {
+          ...result[id],
+          children: result[id].children.filter(
+            (childId) => location[childId]?.length !== 1,
+          ),
+        };
+      }
+    }
+    return result;
+  }, [tree, location, hideGrouped]);
+
   return (
     <Panel title="Shares">
       <CheckboxTree
-        nodes={tree}
+        nodes={filteredTree}
         onLoad={onLoad}
         onCheck={onCheck}
         icons={{
