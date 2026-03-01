@@ -21,12 +21,22 @@ func (c *Core) enqueue(packet domain.Packet) {
 		var plan domain.Plan
 		if lib.Bind(packet.Payload, &plan) == nil {
 			entry.BytesToTransfer = plan.BytesToTransfer
+			for _, vdisk := range plan.VDisks {
+				if vdisk.Src && vdisk.Bin != nil {
+					entry.Items = append(entry.Items, vdisk.Bin.Items...)
+				}
+			}
 		}
 	case common.CommandScatterCopy:
 		entry.OpKind = common.OpScatterCopy
 		var plan domain.Plan
 		if lib.Bind(packet.Payload, &plan) == nil {
 			entry.BytesToTransfer = plan.BytesToTransfer
+			for _, vdisk := range plan.VDisks {
+				if vdisk.Src && vdisk.Bin != nil {
+					entry.Items = append(entry.Items, vdisk.Bin.Items...)
+				}
+			}
 		}
 	case common.CommandGatherMove:
 		entry.OpKind = common.OpGatherMove
@@ -35,6 +45,7 @@ func (c *Core) enqueue(packet domain.Packet) {
 			if plan.Target != "" {
 				if vdisk, ok := plan.VDisks[plan.Target]; ok && vdisk.Bin != nil {
 					entry.BytesToTransfer = vdisk.Bin.Size
+					entry.Items = vdisk.Bin.Items
 				}
 			}
 		}
@@ -43,6 +54,12 @@ func (c *Core) enqueue(packet domain.Packet) {
 		if lib.Bind(packet.Payload, &op) == nil {
 			entry.OpKind = op.OpKind
 			entry.BytesToTransfer = op.BytesToTransfer
+			for _, cmd := range op.Commands {
+				entry.Items = append(entry.Items, &domain.Item{
+					Path: cmd.Entry,
+					Size: cmd.Size,
+				})
+			}
 		}
 	}
 

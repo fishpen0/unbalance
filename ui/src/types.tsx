@@ -138,6 +138,7 @@ export interface QueueEntry {
   topic: string;
   opKind: number;
   bytesToTransfer: number;
+  items?: Array<{ path: string; size: number }>;
 }
 
 export interface State {

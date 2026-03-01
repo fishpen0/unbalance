@@ -9,16 +9,14 @@ export const TransferPage: React.FunctionComponent = () => {
   const queue = useUnraidQueue();
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-end mb-4">
-        <Actions />
+    <div className="h-full overflow-y-auto">
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-end">
+          <Actions />
+        </div>
+        {operation && <Transfer />}
+        {queue.length > 0 && <QueuedOperations items={queue} />}
       </div>
-      {operation ? (
-        <Transfer />
-      ) : (
-        <p className="text-muted-foreground">No active transfer.</p>
-      )}
-      {queue.length > 0 && <QueuedOperations items={queue} />}
     </div>
   );
 };

@@ -7,7 +7,7 @@ import { Commands } from './commands';
 
 export const Transfer: React.FunctionComponent = () => {
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-col">
       <Dashboard />
       <div className="pb-2" />
       <Commands />

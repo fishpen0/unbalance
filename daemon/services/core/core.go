@@ -224,9 +224,9 @@ func (c *Core) mailboxHandler() {
 			c.stopped = true
 
 		case common.CommandQueueRemove:
-			var id string
-			lib.Bind(packet.Payload, &id) //nolint:errcheck
-			c.removeFromQueue(id)
+			if id, ok := packet.Payload.(string); ok {
+				c.removeFromQueue(id)
+			}
 
 		}
 	}

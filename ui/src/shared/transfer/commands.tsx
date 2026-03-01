@@ -1,7 +1,5 @@
 import React from 'react';
 
-import AutoSizer from 'react-virtualized-auto-sizer';
-
 import { useUnraidOperation } from '~/state/unraid';
 import { Icon } from '~/shared/icons/icon';
 import { Command } from '~/shared/command/command';
@@ -14,7 +12,7 @@ export const Commands: React.FunctionComponent = () => {
   }
 
   return (
-    <div className="h-full flex flex-col bg-neutral-100 dark:bg-gray-950">
+    <div className="flex flex-col bg-neutral-100 dark:bg-gray-950">
       <div className="flex flex-col px-2 pt-2">
         <div className="grid grid-cols-12 gap-1 items-center text-lg text-slate-500 dark:text-gray-500 pb-2">
           <div className="col-span-2 flex items-center">
@@ -31,23 +29,14 @@ export const Commands: React.FunctionComponent = () => {
         </div>
         <hr className="border-slate-300 dark:border-gray-700" />
       </div>
-      <div className="flex-auto">
-        <AutoSizer disableWidth>
-          {({ height }) => (
-            <div
-              className="px-2 pb-2 overflow-y-auto"
-              style={{ height: `${height}px` }}
-            >
-              {operation.commands.map((command) => (
-                <Command
-                  key={command.id}
-                  command={command}
-                  rsyncStrArgs={operation.rsyncStrArgs}
-                />
-              ))}
-            </div>
-          )}
-        </AutoSizer>
+      <div className="px-2 pb-2">
+        {operation.commands.map((command) => (
+          <Command
+            key={command.id}
+            command={command}
+            rsyncStrArgs={operation.rsyncStrArgs}
+          />
+        ))}
       </div>
     </div>
   );
